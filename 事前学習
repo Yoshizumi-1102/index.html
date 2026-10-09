@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>令和7年 防災クイズ (12問)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .option-btn {
+      transition: all 0.2s ease-in-out;
+    }
+    .option-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between font-sans">
+
+  <!-- Header -->
+  <header class="bg-red-600 text-white p-4 shadow-md">
+    <div class="max-w-2xl mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold flex items-center gap-2">
+        <span>🚨</span> 防災クイズ (全12問)
+      </h1>
+      <span id="score-counter" class="text-sm bg-red-700 px-3 py-1 rounded-full font-semibold">
+        スコア: 0 / 12
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-2xl w-full mx-auto p-4 flex-grow flex flex-col justify-center">
+
+    <!-- Progress Bar -->
+    <div id="progress-container" class="mb-4">
+      <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+        <span id="progress-text">第 1 問 / 12 問</span>
+        <span id="progress-percent">0%</span>
+      </div>
+      <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+        <div id="progress-bar" class="bg-red-500 h-2.5 rounded-full transition-all duration-300" style="width: 8.33%;"></div>
+      </div>
+    </div>
+
+    <!-- Quiz Card -->
+    <div id="quiz-card" class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+      <!-- Question -->
+      <h2 id="question-text" class="text-lg md:text-xl font-bold mb-6 text-slate-900 leading-relaxed">
+        <!-- Question content loaded dynamically -->
+      </h2>
+
+      <!-- Options -->
+      <div id="options-container" class="space-y-3">
+        <!-- Option buttons loaded dynamically -->
+      </div>
+
+      <!-- Explanation Box (Hidden initially) -->
+      <div id="explanation-box" class="hidden mt-6 p-4 rounded-xl border">
+        <div id="result-badge" class="font-bold text-lg mb-2 flex items-center gap-2">
+          <!-- Correct / Incorrect Badge -->
+        </div>
+        <p id="explanation-text" class="text-slate-700 text-sm md:text-base leading-relaxed">
+          <!-- Explanation content -->
+        </p>
+        <button id="next-btn" onclick="nextQuestion()" class="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow transition">
+          次の問題へ →
+        </button>
+      </div>
+    </div>
+
+    <!-- Result Screen (Hidden initially) -->
+    <div id="result-screen" class="hidden bg-white rounded-2xl shadow-lg p-8 text-center">
+      <div class="text-5xl mb-4">📢</div>
+      <h2 class="text-2xl font-bold text-slate-900 mb-2">クイズ結果発表</h2>
+      <div class="text-4xl font-extrabold text-red-600 my-4" id="final-score">
+        0 / 12
+      </div>
+      <div id="rank-stars" class="text-3xl mb-2 text-yellow-500">
+        ☆☆☆
+      </div>
+      <p id="rank-message" class="text-lg font-bold text-slate-800 mb-6">
+        <!-- Rank evaluation message -->
+      </p>
+
+      <button onclick="restartQuiz()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow transition">
+        もう一度挑戦する 🔄
+      </button>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-slate-200 text-center text-xs text-slate-500 py-3">
+    令和7年 防災クイズ - 避難訓練・防災学習用
+  </footer>
+
+  <script>
+    const quizData = [
+      {
+        question: "Q1. 火事を見つけたら、まず一番に何をしたらよいでしょう?",
+        options: [
+          { text: "A. すぐに逃げる!", correct: false },
+          { text: "B. 火事だ!と大声でさけぶ", correct: true },
+          { text: "C. 火を消すものをさがす", correct: false }
+        ],
+        explanation: "まずは、火事だと大声で周囲に知らせましょう！ 次に初期消火をします。自分の身長よりも大きな炎だったらすぐに逃げましょう。"
+      },
+      {
+        question: "Q2. 火事がおこったときの通報は何番ですか?",
+        options: [
+          { text: "A. 110番", correct: false },
+          { text: "B. 119番", correct: true },
+          { text: "C. 118番", correct: false }
+        ],
+        explanation: "119番は救急と火事、110番は事件事故、118番は海の事件事故です！ しっかり覚えておきましょう。"
+      },
+      {
+        question: "Q3. てんぷら油に火がついた時の正しい対処法はどれでしょう?",
+        options: [
+          { text: "A. 水をかけて火を消す", correct: false },
+          { text: "B. 野菜を投げ入れる", correct: false },
+          { text: "C. 加熱をとめる", correct: true }
+        ],
+        explanation: "まずは落ち着いてガスや電気による加熱を止めましょう。消火器がなければシーツを濡らして鍋全体を覆うようにかけたり、鍋のふたで空気を遮断したりして消火しましょう！ 水をかけたり野菜を投げ入れたりすると、水分が瞬間的に蒸発し、爆発的に炎が広がるので絶対にやってはいけません！"
+      },
+      {
+        question: "Q4. 日本での火災は何月に多いでしょう?",
+        options: [
+          { text: "A. 2月と3月", correct: true },
+          { text: "B. 6月と7月", correct: false },
+          { text: "C. 9月と10月", correct: false }
+        ],
+        explanation: "火災は空気が乾燥する冬（2月〜3月頃）に多いです。暖房器具の切り忘れにも気をつけましょうね！"
+      },
+      {
+        question: "Q5. 外にいるとき、大きな地震が発生しました。どこから情報を知りますか?",
+        options: [
+          { text: "A. ツイッターやラインなどで、すばやく情報をあつめる", correct: false },
+          { text: "B. ラジオやスマホの「緊急避難速報」の情報を聞く", correct: true },
+          { text: "C. 学校、市役所に直接電話をして、情報を聞く", correct: false }
+        ],
+        explanation: "ラジオやテレビの緊急避難情報が正確です。他に、地域の防災放送、広報車の情報もよく聞きましましょう。SNSの情報には嘘も混じっています。でたらめな情報を信じて拡散しないように注意しましょう！"
+      },
+      {
+        question: "Q6. 外に出かけているときに、地震と大きな火災が起こりました。一番安全なのはどこでしょうか?",
+        options: [
+          { text: "A. コンビニエンスストア", correct: false },
+          { text: "B. 交番", correct: false },
+          { text: "C. ガソリンスタンド", correct: true }
+        ],
+        explanation: "ガソリンスタンドは火にも地震にも強く作られている施設です。阪神淡路大震災では、実際にもうれつな火災がガソリンスタンドで焼け止まりになったという例があります。"
+      },
+      {
+        question: "Q7. 学校で震度5の地震がおきました。一番にすべきことはなんですか?",
+        options: [
+          { text: "A. 窓や入口ドアをあける", correct: false },
+          { text: "B. 机などの下にもぐる", correct: true },
+          { text: "C. 教室の外に出る", correct: false }
+        ],
+        explanation: "とにかく、頭を守ることが最優先・肝心です。（窓や入り口を開けることも大切ですが、揺れている最中に無理はしない！）"
+      },
+      {
+        question: "Q8. スーパーにいるときに、震度5くらいの大きな地震がおきました。どうやって身を守りますか?",
+        options: [
+          { text: "A. 買い物かごをかぶってうずくまる", correct: true },
+          { text: "B. 非常口からにげる", correct: false },
+          { text: "C. コンクリートの大きな柱の下ににげる", correct: false }
+        ],
+        explanation: "買い物かごをかぶってうずくまりましょう。スーパー等の買い物かごは意外にも強度があります。とにかく落下物から頭を守ることが肝心です。"
+      },
+      {
+        question: "Q9. 海岸にいる時に強い揺れを感じました。この時にとるべき正しい行動は?",
+        options: [
+          { text: "A. 海のようすをよく観察する", correct: false },
+          { text: "B. 津波注意報、津波警報を聞く", correct: false },
+          { text: "C. すぐに高台や高いビルに避難する", correct: true }
+        ],
+        explanation: "すぐに高台や高いビルに避難します。津波は引き波無しでおこることも、地震発生から2〜3分で襲ってくることもあります。海岸で揺れを感じたら、すぐに高い所に避難しましょう。絶対に「津波が来るかな？」と観察してはいけません！"
+      },
+      {
+        question: "Q10. 津波について、正しいのはどれですか?",
+        options: [
+          { text: "A. 津波は、大きな波が何度もくることがある", correct: true },
+          { text: "B. 遠くの国でおこった地震は、津波にはならない", correct: false },
+          { text: "C. 海の近くは危険だけれど、川は危険ではない", correct: false }
+        ],
+        explanation: "津波は何度も繰り返し襲ってくることがあります。また、遠くの国でおこった地震による遠洋津波もあります。チリ地震では、遠く離れた日本でも津波警報が発令され被害が出ました。"
+      },
+      {
+        question: "Q11. 「大津波警報」が発表されたときの津波の高さはどれぐらいですか?",
+        options: [
+          { text: "A. 5mを超える高さ", correct: true },
+          { text: "B. 1mを超える高さ", correct: false },
+          { text: "C. 30cmを超える高さ", correct: false }
+        ],
+        explanation: "大津波警報は予想される津波の高さが5mを超えるとき（または5m超と発表されるとき）に出されます。2011年3月11日におこった東日本大震災では、最大40mの津波が襲いました。"
+      },
+      {
+        question: "Q12. 外にいるときに雷がなりました。どこへかくれますか?",
+        options: [
+          { text: "A. 建物や車の中にかくれる。", correct: true },
+          { text: "B. 大きな木の下にかくれる。", correct: false },
+          { text: "C. まわりに何もないところに移動する", correct: false }
+        ],
+        explanation: "建物や車の中が安全です。大きな木の下は落雷の危険が高いため、一番あぶない場所です！"
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    const questionTextEl = document.getElementById("question-text");
+    const optionsContainerEl = document.getElementById("options-container");
+    const explanationBoxEl = document.getElementById("explanation-box");
+    const resultBadgeEl = document.getElementById("result-badge");
+    const explanationTextEl = document.getElementById("explanation-text");
+    const nextBtnEl = document.getElementById("next-btn");
+    const scoreCounterEl = document.getElementById("score-counter");
+    const progressBarEl = document.getElementById("progress-bar");
+    const progressTextEl = document.getElementById("progress-text");
+    const progressPercentEl = document.getElementById("progress-percent");
+
+    const quizCardEl = document.getElementById("quiz-card");
+    const progressContainerEl = document.getElementById("progress-container");
+    const resultScreenEl = document.getElementById("result-screen");
+    const finalScoreEl = document.getElementById("final-score");
+    const rankStarsEl = document.getElementById("rank-stars");
+    const rankMessageEl = document.getElementById("rank-message");
+
+    function loadQuestion() {
+      const q = quizData[currentQuestionIndex];
+      questionTextEl.textContent = q.question;
+      optionsContainerEl.innerHTML = "";
+      explanationBoxEl.classList.add("hidden");
+
+      // Progress update
+      const currentNum = currentQuestionIndex + 1;
+      const totalNum = quizData.length;
+      const percent = Math.round((currentNum / totalNum) * 100);
+      
+      progressTextEl.textContent = `第 ${currentNum} 問 / ${totalNum} 問`;
+      progressPercentEl.textContent = `${percent}%`;
+      progressBarEl.style.width = `${percent}%`;
+
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn w-full text-left p-4 rounded-xl border-2 border-slate-200 bg-slate-50 hover:bg-slate-100 font-medium text-slate-800 flex justify-between items-center";
+        btn.textContent = opt.text;
+        btn.onclick = () => selectOption(idx);
+        optionsContainerEl.appendChild(btn);
+      });
+    }
+
+    function selectOption(selectedIndex) {
+      const q = quizData[currentQuestionIndex];
+      const buttons = optionsContainerEl.querySelectorAll("button");
+
+      // Disable all buttons after selection
+      buttons.forEach(b => b.disabled = true);
+
+      const selectedOpt = q.options[selectedIndex];
+
+      if (selectedOpt.correct) {
+        score++;
+        scoreCounterEl.textContent = `スコア: ${score} / ${quizData.length}`;
+        buttons[selectedIndex].classList.remove("border-slate-200", "bg-slate-50");
+        buttons[selectedIndex].classList.add("border-green-500", "bg-green-50", "text-green-800");
+        resultBadgeEl.innerHTML = `<span class="text-green-600">⭕ 正解！</span>`;
+        explanationBoxEl.className = "mt-6 p-4 rounded-xl border border-green-200 bg-green-50";
+      } else {
+        buttons[selectedIndex].classList.remove("border-slate-200", "bg-slate-50");
+        buttons[selectedIndex].classList.add("border-red-500", "bg-red-50", "text-red-800");
+        
+        // Highlight the correct one
+        q.options.forEach((opt, i) => {
+          if (opt.correct) {
+            buttons[i].classList.remove("border-slate-200", "bg-slate-50");
+            buttons[i].classList.add("border-green-500", "bg-green-50", "text-green-800");
+          }
+        });
+
+        resultBadgeEl.innerHTML = `<span class="text-red-600">❌ 不正解...</span>`;
+        explanationBoxEl.className = "mt-6 p-4 rounded-xl border border-red-200 bg-red-50";
+      }
+
+      explanationTextEl.textContent = q.explanation;
+      explanationBoxEl.classList.remove("hidden");
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < quizData.length) {
+        loadQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function showResults() {
+      quizCardEl.classList.add("hidden");
+      progressContainerEl.classList.add("hidden");
+      resultScreenEl.classList.remove("hidden");
+
+      finalScoreEl.textContent = `${score} / ${quizData.length}`;
+
+      if (score >= 10) {
+        rankStarsEl.textContent = "☆☆☆";
+        rankMessageEl.textContent = "大変よくできました。防災の意識が高いですね！";
+      } else if (score >= 6) {
+        rankStarsEl.textContent = "☆☆";
+        rankMessageEl.textContent = "よくできました。さらに防災の知識を身につけよう！";
+      } else {
+        rankStarsEl.textContent = "☆";
+        rankMessageEl.textContent = "今日から防災を意識してみよう！";
+      }
+    }
+
+    function restartQuiz() {
+      currentQuestionIndex = 0;
+      score = 0;
+      scoreCounterEl.textContent = `スコア: 0 / ${quizData.length}`;
+      resultScreenEl.classList.add("hidden");
+      quizCardEl.classList.remove("hidden");
+      progressContainerEl.classList.remove("hidden");
+      loadQuestion();
+    }
+
+    // Initialize Quiz
+    loadQuestion();
+  </script>
+</body>
+</html>
+```eof
+
+防災知識を楽しみながらしっかり身につけられるアプリとなっています。日頃の防災訓練や学習にぜひお役立てください！
